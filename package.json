@@ -1,0 +1,30 @@
+{
+  "name": "@lukekaalim/lsp-node",
+  "version": "0.1.0",
+  "description": "Implementation of a LSP Server in node",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "src/main.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukekaalim/lsp-node.git"
+  },
+  "keywords": [
+    "LSP",
+    "language",
+    "server",
+    "protocol"
+  ],
+  "author": "luke kaalim (lukekaalim@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lukekaalim/lsp-node/issues"
+  },
+  "homepage": "https://github.com/lukekaalim/lsp-node#readme",
+  "dependencies": {
+    "@lukekaalim/test": "^8.0.2",
+    "uuid": "^7.0.2"
+  },
+  "devDependencies": {}
+}

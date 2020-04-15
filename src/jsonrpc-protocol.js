@@ -26,18 +26,14 @@ const createJSONRPCErrorResponse = (requestId, error) => ({
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#notificationMessage
 const createJSONRPCNotification = (method, params) => ({
-  return {
-    ...createJSONRPCMessage(),
-    method,
-    params,
-  };
+  ...createJSONRPCMessage(),
+  method,
+  params,
 });
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#abstract-message
 const createJSONRPCMessage = () => ({
-  return {
-    jsonrpc: '2.0'
-  };
+  jsonrpc: '2.0'
 });
 
 module.exports = {
