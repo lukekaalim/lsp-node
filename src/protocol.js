@@ -1,97 +1,89 @@
-// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#headerPart
-// LSP only supports two types of headers, contentType and contentLength
-const createLSPHeaders = (contentType, contentLength) => {
-  const contentLengthHeader = { property: 'Content-Length', value: contentLength };
-  const contentTypeHeader = { property: 'Content-Type', value: contentType };
-  const headers = [
-    contentLengthHeader,
-    contentTypeHeader,
-  ];
-  return headers
-    .map(header => `${header.property}:${header.value}\n`)
-    .join('');
+const parseHeaders = (headersPartString) => headersPartString
+  .split('\r\n')
+  .map(headerString => {
+    const [name, value] = headerString.split(': ');
+    return { name, value };
+  });
+
+const createBaseProtocolHeaderReader = () => {
+  let headerContent = '';
+
+  const readChunk = (chunk) => {
+    headerContent += chunk;
+
+    const headerBreakIndex = headerContent.indexOf('\r\n\r\n');
+
+    if (headerBreakIndex === -1)
+      return null;
+    
+    const headersInChunk = parseHeaders(headerContent.slice(0, headerBreakIndex));
+    const restOfChunk = headerContent.slice(headerBreakIndex + '\r\n\r\n'.length);
+
+    return { headersInChunk, restOfChunk };
+  };
+
+  const reset = () => {
+    headerContent = '';
+  };
+
+  return {
+    readChunks,
+    reset,
+  };
 };
 
-// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#contentPart
-const createLSPBody = body => {
-  return body
+const createBaseProtocolBodyReader = () => {
+  let bodyContent = Buffer.from('');
+  let bytesRead = 0;
+
+  const setMaxBytesToRead = (bytesToRead) => {
+    bodyContent = bytesToRead;
+  };
+
+  const readChunk = (chunk) => {
+    bodyContent = Buffer.concat([bodyContent, chunk]);
+  };
+
+  const reset = () => {
+    bodyContent = '';
+    bytesRead = 0;
+  };
+
+  return {
+    readChunk,
+    reset,
+  };
 };
 
-// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#baseProtocol
-const createLSPMessage = (body) => {
-  const lspBody = createLSPBody(body);
-  const lspHeader = createLSPHeaders('utf-8', Buffer.from(lspBody, 'utf-8').length);
+const createBaseProtocolReader = (onMessage) => {
+  const headerReader = createBaseProtocolHeaderReader();
+  const bodyReader = createBaseProtocolBodyReader();
 
-  return [
-    lspHeader,
-    lspBody,
-  ].join('\n')
-};
+  let readingState = 'header';
+  let headers = null;
+  let body = null
 
-const EOLCharacters = ['\n', '\r\n', '\r'];
+  const readChunk = (chunk) => {
+    switch (readingState) {
+      case 'header':
+        const chunkContents = headerReader.readChunk(chunk);
+        if (chunkContents) {
+          const { headersInChunk, restOfChunk } = chunkContents;
+          readingState = 'body';
+          return readChunk(restOfChunk)
+        }
+      case 'body':
 
-const parseLSPHeaderValue = (message, initalIndex) => {
-  let index = initalIndex;
-  while (index < message.length) {
-    const char = message.charAt(index);
-    if (EOLCharacters.includes(char)) {
-      const headerName = message.slice(initalIndex, index).trim();
-      return [headerName, index + 1];
     }
-    index++;
+    if (readingState === 'header') {
+    }
+  };
+
+  const readHeaders = () => {
+
+  };
+
+  return {
+    readChunk,
   }
-  throw new Error('Unexpected End of String when parsing Header Value');
-};
-
-const parseLSPHeaderName = (message, initalIndex) => {
-  let index = initalIndex;
-  while (index < message.length) {
-    const char = message.charAt(index);
-    if (EOLCharacters.includes(char)) {
-      throw new Error('Unexpected EOL when parsing Header Name');
-    }
-    if (char === ':') {
-      const headerName = message.slice(initalIndex, index).trim();
-      return [headerName, index + 1];
-    }
-    index++;
-  }
-  throw new Error('Unexpected End of String when parsing Header Name');
-};
-
-const parseLSPHeader = (message, initalIndex) => {
-  const [name, headerNameIndex] = parseLSPHeaderName(message, initalIndex);
-  const [value, headerValueIndex] = parseLSPHeaderValue(message, headerNameIndex);
-
-  return [[name, value], headerValueIndex];
-};
-
-const parseLSPHeaders = (message, initalIndex) => {
-  let index = initalIndex;
-  const headers = [];
-  while (index < message.length) {
-    const char = message.charAt(index);
-    if (EOLCharacters.includes(char)) {
-      return [Object.fromEntries(headers), index + 1];
-    }
-    const [header, headerIndex] = parseLSPHeader(message, index);
-    headers.push(header);
-    index = headerIndex;
-  }
-  throw new Error('Unexpected End of String when parsing headers');
-};
-
-const parseLSPBody = (message, contentLength, contentType, initalIndex) => {
-  return Buffer.from(message.slice(initalIndex)).toString(contentType || 'utf-8', 0, contentLength);
-};
-
-const parseLSPMessage = (message) => {
-  const [headers, headersIndex] = parseLSPHeaders(message, 0);
-  const body = parseLSPBody(message, headers['Content-Length'], headers['Content-Type'], headersIndex);
-  return body;
-};
-
-module.exports = {
-  createLSPMessage,
-  parseLSPMessage,
 };
