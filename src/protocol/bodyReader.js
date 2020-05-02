@@ -1,18 +1,14 @@
 const createBodyReader = () => {
-  let bodyContent = Buffer.from('');
+  let bodyContent = null
   let bytesRead = 0;
 
-  const setMaxBytesToRead = (bytesToRead) => {
-    bodyContent = bytesToRead;
-  };
-
   const readChunk = (chunk) => {
+    if ()
     bodyContent = Buffer.concat([bodyContent, chunk]);
   };
 
-  const reset = () => {
-    bodyContent = '';
-    bytesRead = 0;
+  const prepare = (bytesToRead) => {
+    
   };
 
   return {
