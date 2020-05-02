@@ -1,7 +1,7 @@
 const { assert } = require('@lukekaalim/test');
 const { chunkify } = require('./chunk.utils.test');
 
-const { createHeaderReader } = require('./headerReader');
+const { createHeaderReader, HeaderTerminatedError } = require('./headerReader');
 
 // Test Utils
 
@@ -16,6 +16,18 @@ const assertHeaderContains = (headers, expectedName, expectedValue) => {
   const failMessage = `${passMessage} (but was instead "${headers[expectedName]}")`;
 
   return assert(pass ? passMessage : failMessage, pass);
+};
+
+const assertThrows = (functionToThrow, expectedErrorConstructor = Error) => {
+  try {
+    functionToThrow();
+    return assert(`The provided function should throw an error (But it did not)`, false);
+  } catch (error) {
+    if (error instanceof expectedErrorConstructor)
+      return assert(`The provided function should throw an error`, true);
+
+    return assert(`The provided function should throw an error (But it threw the wrong kind of error)`, false);
+  };
 };
 
 // Tests
@@ -52,12 +64,24 @@ const testChunkedHeader = (reader) => {
   ]);
 };
 
+const testTerminationError = (reader) => {
+  const headerContent = createHeaderFromFields('Content-Length: 100');
+  const chunk = Buffer.from(headerContent, 'ascii');
+
+  reader.readChunk(chunk);
+
+  return assert(`The reader should throw an error it is asked to read another chunk after terminating without being reset`, [
+    assertThrows(() => reader.readChunk('excess data'), HeaderTerminatedError)
+  ]);
+};
+
 // Orchestrator
 
 const testHeaderReader = () => {
   return assert('protocol/headerReader.js exports a constructor that creates a LSP header reader', [
     testSingleHeader(createHeaderReader()),
-    testChunkedHeader(createHeaderReader())
+    testChunkedHeader(createHeaderReader()),
+    testTerminationError(createHeaderReader())
   ]);
 };
 

@@ -35,6 +35,7 @@ const createHeaderReader = () => {
 
     const headersChunk = combinedChunk.slice(0, headerTerminationIndex);
     const headers = parseHeaders(headersChunk);
+    completedHeader = true;
 
     return { headers, headerTerminationIndex };
   };
