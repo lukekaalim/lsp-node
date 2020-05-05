@@ -2,6 +2,7 @@ const { assert } = require('@lukekaalim/test');
 const { createProtocolReader } = require('./protocol');
 
 const { testHeaderReader } = require('./protocol/headerReader.test');
+const { testBodyReader } = require('./protocol/bodyReader.test');
 
 // 156 bytes
 const sessionNotes = [
@@ -29,6 +30,7 @@ const testProtocolReader = () => {
   return assert('protocol.js exports a constructor that emits language server protocol messages when fed data', [
     testSimpleMessageReading(createProtocolReader()),
     testHeaderReader(),
+    testBodyReader(),
   ]);
 };
 
