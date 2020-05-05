@@ -3,7 +3,7 @@ class BodyTerminatedError extends Error {
     super([
       `Attempted to continue reading chunks even though body terminated (or was not prepared).`,
       `Consider calling prepare() to start a new body.`
-    ].join(''))
+    ].join('\n'))
   }
 };
 

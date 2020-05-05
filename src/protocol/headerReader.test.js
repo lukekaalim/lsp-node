@@ -39,10 +39,10 @@ const testSingleHeader = (reader) => {
   const { headers, headerTerminationIndex } = reader.readChunk(chunk);
 
   return assert('The reader reads the headers of a continuous single-field header', [
-    assertHeaderContains(headers, 'Content-Length', '100'),
+    assertHeaderContains(headers, 'content-length', '100'),
     assert(
       'Reader marks on the result where the header terminates',
-      chunk.toString('ascii').slice(headerTerminationIndex + 4) === extraData
+      chunk.toString('ascii').slice(headerTerminationIndex) === extraData
     )
   ]);
 };
@@ -54,13 +54,13 @@ const testChunkedHeader = (reader) => {
 
     let result;
     for (const chunk of chunks) {
-      result = reader.readChunk(chunk) || result;
+      result = reader.readChunk(chunk);
     }
 
   return assert(`The reader reads the headers of a ${chunks.length} chunked multiple-field header`, [
-    assertHeaderContains(result.headers, 'Content-Length', '100'),
-    assertHeaderContains(result.headers, 'Content-Type', 'utf-8'),
-    assertHeaderContains(result.headers, 'Origin', 'http://localhost'),
+    assertHeaderContains(result.headers, 'content-length', '100'),
+    assertHeaderContains(result.headers, 'content-type', 'utf-8'),
+    assertHeaderContains(result.headers, 'origin', 'http://localhost'),
   ]);
 };
 

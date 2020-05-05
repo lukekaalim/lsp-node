@@ -2,7 +2,7 @@ const parseHeaders = (headersChunk) => {
   const headers = {};
   for (const headerLine of headersChunk.split('\r\n')) {
     const [property, value] = headerLine.split(': ', 2);
-    headers[property] = value;
+    headers[property.toLowerCase()] = value;
   }
   return headers;
 };
@@ -12,7 +12,7 @@ class HeaderTerminatedError extends Error {
     super([
       `Attempted to continue reading chunks even though header terminated.`,
       `Consider calling prepare() to start a new header.`
-    ].join(''))
+    ].join('\n'))
   }
 };
 
@@ -26,22 +26,24 @@ const createHeaderReader = () => {
 
     const chunkAsString = chunk.toString('ascii');
     const combinedChunk = unterminatedReadChunks + chunkAsString;
-    const headerTerminationIndex = combinedChunk.indexOf('\r\n\r\n');
+    const combinedHeaderTerminationIndex = combinedChunk.indexOf('\r\n\r\n');
 
-    if (headerTerminationIndex === -1) {
+    if (combinedHeaderTerminationIndex === -1) {
       unterminatedReadChunks = combinedChunk;
       return null;
     }
 
-    const headersChunk = combinedChunk.slice(0, headerTerminationIndex);
+    const headersChunk = combinedChunk.slice(0, combinedHeaderTerminationIndex);
+    const localHeaderTerminationIndex = Math.max(0, combinedHeaderTerminationIndex - unterminatedReadChunks.length + 4);
     const headers = parseHeaders(headersChunk);
     completedHeader = true;
 
-    return { headers, headerTerminationIndex };
+    return { headers, headerTerminationIndex: localHeaderTerminationIndex };
   };
 
   const prepare = () => {
     unterminatedReadChunks = '';
+    completedHeader = false;
   };
 
   return {
