@@ -1,11 +1,11 @@
 const { promises: { writeFile } } = require('fs');
-const { parseLSPMessage } = require('../protocol');
+const { createProtocolReader } = require('../protocol');
 
 const createRouter = (routes) => {
   const connections = [];
 
   const onConnection = (socket) => {
-    socket.setEncoding('utf8');
+    const reader = createProtocolReader();
 
     socket.on('connect', () => {
       console.log('connected!');
@@ -19,13 +19,15 @@ const createRouter = (routes) => {
     socket.on('data', async (data) => {
       console.log(data);
       await writeFile(`./data-${Math.floor(Math.random() * 1000)}.log`, data, 'utf-8');
-      const content = parseLSPMessage(data);
-      console.log(content);
+      const messages = reader.readChunk(data);
+      for (const message of messages) {
+        console.log(JSON.parse(message.body.toString('utf-8')));
+      }
     });
 
     socket.on('end', () => {
       // do something with data
-      console.log('end!', fragments);
+      console.log('end!');
     });
 
     socket.on('error', () => {

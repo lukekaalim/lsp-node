@@ -1,0 +1,46 @@
+{
+	"name": "lsp-sample-client",
+	"description": "VSCode part of a language server",
+	"author": "Luke Kaalim",
+	"license": "MIT",
+	"version": "1.0.0",
+	"publisher": "Luke Kaalim",
+	"engines": {
+		"vscode": "^1.33.0"
+	},
+	"activationEvents": [
+		"*"
+  ],
+  "scripts": {
+    "start": "node ./start.js"
+  },
+	"main": "./extension.js",
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "Example configuration",
+			"properties": {
+				"languageServerExample.maxNumberOfProblems": {
+					"scope": "resource",
+					"type": "number",
+					"default": 100,
+					"description": "Controls the maximum number of problems produced by the server."
+				},
+				"languageServerExample.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "off",
+					"description": "Traces the communication between VS Code and the language server."
+				}
+			}
+		}
+	},
+	"dependencies": {
+		"vscode-languageclient": "^6.1.3"
+	}
+}
