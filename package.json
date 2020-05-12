@@ -24,7 +24,7 @@
   "homepage": "https://github.com/lukekaalim/lsp-node#readme",
   "dependencies": {
     "@lukekaalim/test": "^8.0.2",
-    "uuid": "^7.0.2"
+    "uuid": "^7.0.3"
   },
   "devDependencies": {}
 }

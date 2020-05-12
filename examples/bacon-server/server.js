@@ -3,8 +3,6 @@ const readline = require('readline');
 
 const createCLI = async (runtime, entrypoint, command) => {
   try {
-    console.log(`runtime: ${runtime}, entrypoint: ${entrypoint}`);
-  
     readline.emitKeypressEvents(process.stdin);
     if (process.stdin.isTTY)
       process.stdin.setRawMode(true);

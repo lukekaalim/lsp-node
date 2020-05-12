@@ -1,4 +1,4 @@
-https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
+//https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
 const initalizeMessage = (processId, clientName, clientVersion, rootPath) => ({
   processId,
   

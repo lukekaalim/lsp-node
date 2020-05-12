@@ -8,8 +8,6 @@ const createProtocolReader = () => {
   let body = null;
 
   headerReader.prepare();
-  bodyReader.prepare(0);
-
   let readerState = 'reading-headers';
 
   const readHeaderChunk = (chunk) => {
@@ -50,6 +48,14 @@ const createProtocolReader = () => {
   };
 };
 
+const createProtocolMessage = (body) => {
+  const bodyPart = Buffer.from(body, 'utf-8');
+  const headerPart = Buffer.from(`Content-Length: ${bodyPart.length}\r\n\r\n`, 'ascii');
+
+  return Buffer.concat([headerPart, bodyPart]);
+};
+
 module.exports = {
   createProtocolReader,
+  createProtocolMessage,
 };

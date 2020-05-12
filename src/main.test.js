@@ -3,6 +3,7 @@ const { assert, colorReporter } = require('@lukekaalim/test');
 
 //const { testLanguageServer } = require('./languageServer.test.js');
 const { testProtocolReader } = require('./protocol.test');
+const { testSocketHandler } = require('./rpc.test');
 
 const testMainExports = async () => {
   return assert('The main package exports a function that can create a LSP server', [
@@ -19,7 +20,7 @@ const test = async () => {
   try {
     const assertion = assert('@lukekaalim/lsp-node is a package that can be used to create a Language Server', [
       await testProtocolReader(),
-      //testLSPProtocol(),
+      await testSocketHandler(),
     ]);
     console.log(colorReporter(assertion));
     console.timeEnd('Test duration');
