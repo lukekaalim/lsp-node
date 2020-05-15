@@ -13,6 +13,7 @@ class RPCResponseError extends Error {
   message;
   data;
   constructor(errorCode = -32001, errorMessage = 'An unhandled error was thrown', errorData = null) {
+    super(errorMessage);
     this.code = errorCode;
     this.message = errorMessage;
     this.data = errorData;
@@ -26,7 +27,9 @@ const createRPCRouter = (rpcMethods) => {
     if (methodNameMap.has(request.method)) {
       const handler = methodNameMap.get(request.method);
       try {
-        const result = handler(request.id, request.params);
+        const result = await handler(request.id, request.params);
+        if (!result)
+          return null;
         return { id: uuid(), result };
       } catch (error) {
         if (error instanceof RPCResponseError) {
@@ -35,6 +38,7 @@ const createRPCRouter = (rpcMethods) => {
         return { id: uuid(), error: new RPCResponseError() };
       }
     }
+    return { id: uuid(), error: new RPCResponseError() };
   };
 
   return {
@@ -54,9 +58,13 @@ const createSocketRPCHandler = (socket, requestHandler) => {
   
     const incomingMessage = messageQueue[0];
     const request = JSON.parse(incomingMessage.body.toString('utf-8'));
+    console.log(request);
     const response = await requestHandler(request);
-    const outgoingMessage = createProtocolMessage(JSON.stringify(response, null, 2));
-    await writeToSocket(outgoingMessage);
+    console.log(response);
+    if (response) {
+      const outgoingMessage = createProtocolMessage(JSON.stringify(response, null, 2));
+      await writeToSocket(outgoingMessage);
+    }
 
     messageQueue.shift();
     await processQueue();

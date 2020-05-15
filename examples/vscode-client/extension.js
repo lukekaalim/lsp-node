@@ -23,7 +23,7 @@ function activate(context) {
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
 	let serverOptions = async () => {
-		console.log('CONNECTING TO 6543');
+    console.log('CONNECTING TO 6543');
 		const socket = net.createConnection(6543, 'localhost', () => {
 			console.log('connected');
 		});
