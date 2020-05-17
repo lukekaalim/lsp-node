@@ -1,6 +1,14 @@
 const { v4: uuid } = require('uuid');
 const { createProtocolReader, createProtocolMessage } = require('./protocol');
 
+const createNotificationHandler = () => {
+
+};
+
+const createMethodHandler = () => {
+
+};
+
 const createRPCMethod = (methodName, methodHandler) => {
   return {
     methodName,
@@ -30,15 +38,15 @@ const createRPCRouter = (rpcMethods) => {
         const result = await handler(request.id, request.params);
         if (!result)
           return null;
-        return { id: uuid(), result };
+        return { id: request.id, result };
       } catch (error) {
         if (error instanceof RPCResponseError) {
-          return { id: uuid(), error };
+          return { id: request.id, error };
         }
-        return { id: uuid(), error: new RPCResponseError() };
+        return { id: request.id, error: new RPCResponseError() };
       }
     }
-    return { id: uuid(), error: new RPCResponseError() };
+    return { id: request.id, error: new RPCResponseError() };
   };
 
   return {
@@ -78,6 +86,11 @@ const createSocketRPCHandler = (socket, requestHandler) => {
       await processQueue();
   };
 
+  const sendNotification = (method, params) => {
+    const notificationMessage = createProtocolMessage(JSON.stringify({ method, params }, null, 2));
+    await writeToSocket(notificationMessage);
+  };
+
   socket.on('data', onSocketData);
 
   const close = () => {
@@ -85,6 +98,7 @@ const createSocketRPCHandler = (socket, requestHandler) => {
   };
 
   return {
+    sendNotification,
     messageQueue,
     close,
   };
