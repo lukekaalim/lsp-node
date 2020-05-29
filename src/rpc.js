@@ -1,21 +1,6 @@
 const { v4: uuid } = require('uuid');
 const { createProtocolReader, createProtocolMessage } = require('./protocol');
 
-const createNotificationHandler = () => {
-
-};
-
-const createMethodHandler = () => {
-
-};
-
-const createRPCMethod = (methodName, methodHandler) => {
-  return {
-    methodName,
-    methodHandler,
-  };
-};
-
 class RPCResponseError extends Error {
   code;
   message;
@@ -26,35 +11,9 @@ class RPCResponseError extends Error {
     this.message = errorMessage;
     this.data = errorData;
   }
-}
-
-const createRPCRouter = (rpcMethods) => {
-  const methodNameMap = new Map(rpcMethods.map(method => [method.methodName, method.methodHandler]));
-
-  const handleRequest = async (request) => {
-    if (methodNameMap.has(request.method)) {
-      const handler = methodNameMap.get(request.method);
-      try {
-        const result = await handler(request.id, request.params);
-        if (!result)
-          return null;
-        return { id: request.id, result };
-      } catch (error) {
-        if (error instanceof RPCResponseError) {
-          return { id: request.id, error };
-        }
-        return { id: request.id, error: new RPCResponseError() };
-      }
-    }
-    return { id: request.id, error: new RPCResponseError() };
-  };
-
-  return {
-    handleRequest,
-  };
 };
 
-const createSocketRPCHandler = (socket, requestHandler) => {
+const connectSocketToRouter = (socket, router) => {
   const reader = createProtocolReader();
   const writeToSocket = async (data) => new Promise(resolve => socket.write(data, resolve));
 
@@ -66,9 +25,7 @@ const createSocketRPCHandler = (socket, requestHandler) => {
   
     const incomingMessage = messageQueue[0];
     const request = JSON.parse(incomingMessage.body.toString('utf-8'));
-    console.log(request);
-    const response = await requestHandler(request);
-    console.log(response);
+    const response = await router.requestHandler(request);
     if (response) {
       const outgoingMessage = createProtocolMessage(JSON.stringify(response, null, 2));
       await writeToSocket(outgoingMessage);
@@ -105,8 +62,5 @@ const createSocketRPCHandler = (socket, requestHandler) => {
 };
 
 module.exports = {
-  RPCResponseError,
-  createRPCMethod,
-  createRPCRouter,
-  createSocketRPCHandler,
+  connectSocketToRouter,
 };
