@@ -1,32 +1,43 @@
 const net = require('net');
-const { createSocketRPCHandler, createRPCRouter, createRPCMethod } = require('./rpc.js');
+const { promisify } = require('util');
+const { connectSocketToRouter } = require('./rpc.js');
+const { createAsyncInitializationRouter, createBasicRPCRouter, createRPCMethod } = require('./router.js');
 
-const createLanguageServer = (name, version,) => {
-  const router = createRPCRouter([
-    createRPCMethod('initialize', () => ({
-      capabilities: {},
-      serverInfo: { name, version, }
-    })),
-    createRPCMethod('initialized', () => {
-      console.log('Client notified initalized');
-    }),
-  ]);
+const createServerRouter = async () => {
+  const methods = [
+  ];
+  const notifications = [
+  ];
+  const defaultHandler = () => {
+    throw new Error();
+  };
+  const router = createBasicRPCRouter(methods, notifications, defaultHandler);
+  const capabilities = {
 
-  const netServer = net.createServer(socket => {
-    const handler = createSocketRPCHandler(socket, router.handleRequest);
+  };
+  const serverInfo = {
+    
+  };
+  return {
+    router,
+    capabilities,
+    serverInfo,
+  };
+};
+
+const createLanguageServer = (name, version) => {
+  const netServer = net.createServer();
+
+  server.on('connection', (socket) => {
+    connectSocketToRouter(socket, createAsyncInitializationRouter(createServerRouter))
   });
 
   netServer.on('error', (err) => {
     console.error(err);
   });
 
-  const listen = () => new Promise((resolve, reject) => {
-    netServer.listen(6543, err => err ? reject(err) : resolve());
-  });
-
-  const close = () => new Promise((resolve, reject) => {
-    netServer.close(err => err ? reject(err) : resolve())
-  });
+  const listen = promisify(netServer.listen);
+  const close = promisify(netServer.close);
 
   return {
     listen,
