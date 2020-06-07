@@ -1,17 +1,4 @@
-const { v4: uuid } = require('uuid');
 const { createProtocolReader, createProtocolMessage } = require('./protocol');
-
-class RPCResponseError extends Error {
-  code;
-  message;
-  data;
-  constructor(errorCode = -32001, errorMessage = 'An unhandled error was thrown', errorData = null) {
-    super(errorMessage);
-    this.code = errorCode;
-    this.message = errorMessage;
-    this.data = errorData;
-  }
-};
 
 const connectSocketToRouter = (socket, router) => {
   const reader = createProtocolReader();
@@ -25,7 +12,7 @@ const connectSocketToRouter = (socket, router) => {
   
     const incomingMessage = messageQueue[0];
     const request = JSON.parse(incomingMessage.body.toString('utf-8'));
-    const response = await router.requestHandler(request);
+    const response = await router.handleRequest(request);
     if (response) {
       const outgoingMessage = createProtocolMessage(JSON.stringify(response, null, 2));
       await writeToSocket(outgoingMessage);
@@ -43,7 +30,7 @@ const connectSocketToRouter = (socket, router) => {
       await processQueue();
   };
 
-  const sendNotification = (method, params) => {
+  const sendNotification = async (method, params) => {
     const notificationMessage = createProtocolMessage(JSON.stringify({ method, params }, null, 2));
     await writeToSocket(notificationMessage);
   };

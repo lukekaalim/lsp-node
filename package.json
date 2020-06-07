@@ -4,7 +4,7 @@
   "description": "Implementation of a LSP Server in node",
   "main": "src/main.js",
   "scripts": {
-    "test": "node src/main.test.js"
+    "test": "node src/test.js"
   },
   "repository": {
     "type": "git",
